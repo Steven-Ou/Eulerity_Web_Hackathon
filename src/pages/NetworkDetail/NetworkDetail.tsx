@@ -344,14 +344,17 @@ export default function NetworkDetail() {
                   width="100%"
                   height="400px"
                   data={[
-                    ["Date", "Impressions", "Clicks"],
-                    ...dailyData.map((day: any) => [
-                      day.date
-                        ? format(new Date(day.date), "MMM dd")
-                        : "Unknown",
-                      day.impressions || 0,
-                      day.clicks || 0,
-                    ]),
+                    ["Date", "Impressions"],
+                    ["Test", 100],
+                    ["Test2", 200],
+                    // ["Date", "Impressions", "Clicks"],
+                    // ...dailyData.map((day: any) => [
+                    //   day.date
+                    //     ? format(new Date(day.date), "MMM dd")
+                    //     : "Unknown",
+                    //   day.impressions || 0,
+                    //   day.clicks || 0,
+                    // ]),
                   ]}
                   options={{
                     curveType: "function",
