@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import styled from 'styled-components';
-import { format, subDays, differenceInDays } from 'date-fns';
-import Papa from 'papaparse';
-import { Chart } from 'react-google-charts';
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import styled from "styled-components";
+import { format, subDays, differenceInDays } from "date-fns";
+import Papa from "papaparse";
+import { Chart } from "react-google-charts";
 
 // --- STYLED COMPONENTS ---
 const PageContainer = styled.div`
@@ -15,92 +15,108 @@ const HeaderRow = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 30px;
   flex-wrap: wrap;
   gap: 20px;
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
 `;
 
 const Title = styled.h1`
-  font-size: 2rem;
+  font-size: 2.2rem;
   text-transform: capitalize;
   margin: 0;
-  color: #111;
+  color: #0f172a;
 `;
 
 const ControlsContainer = styled.div`
   display: flex;
   gap: 12px;
   align-items: center;
+  flex-wrap: wrap;
 `;
 
 const DateInput = styled.input`
-  padding: 8px 12px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  padding: 10px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
   font-size: 1rem;
+  outline: none;
+  &:focus {
+    border-color: #aa3bff;
+  }
 `;
 
 const Button = styled.button<{ $primary?: boolean }>`
-  padding: 9px 16px;
-  background: ${props => props.$primary ? '#aa3bff' : '#f4f4f4'};
-  color: ${props => props.$primary ? '#fff' : '#333'};
-  border: ${props => props.$primary ? 'none' : '1px solid #ccc'};
-  border-radius: 6px;
+  padding: 10px 20px;
+  background: ${(props) => (props.$primary ? "#aa3bff" : "#f1f5f9")};
+  color: ${(props) => (props.$primary ? "#fff" : "#333")};
+  border: none;
+  border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
   transition: opacity 0.2s;
-
   &:hover {
     opacity: 0.8;
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 `;
 
 const KPIStrip = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
   margin-bottom: 30px;
 `;
 
 const KPICard = styled.div`
   background: #fff;
-  padding: 20px;
-  border-radius: 10px;
-  border: 1px solid #eaeaea;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  border-left: 4px solid #aa3bff;
 `;
 
 const KPILabel = styled.div`
-  color: #666;
+  color: #64748b;
   font-size: 0.9rem;
   margin-bottom: 8px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  font-weight: 600;
 `;
 
 const KPIValue = styled.div`
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   font-weight: bold;
-  color: #111;
+  color: #0f172a;
   margin-bottom: 8px;
 `;
 
 const KPIDelta = styled.div<{ $isPositive: boolean }>`
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  color: ${props => props.$isPositive ? '#16a34a' : '#dc2626'};
+  color: ${(props) => (props.$isPositive ? "#16a34a" : "#dc2626")};
   display: flex;
   align-items: center;
   gap: 4px;
+  background: ${(props) => (props.$isPositive ? "#dcfce7" : "#fee2e2")};
+  padding: 4px 8px;
+  border-radius: 6px;
+  display: inline-flex;
 `;
 
 const ChartContainer = styled.div`
   background: #fff;
-  padding: 20px;
-  border-radius: 10px;
-  border: 1px solid #eaeaea;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
   margin-bottom: 30px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
 `;
 
 const ErrorBanner = styled.div`
@@ -115,30 +131,34 @@ const ErrorBanner = styled.div`
 // --- COMPONENT LOGIC ---
 export default function NetworkDetail() {
   const { networkId } = useParams<{ networkId: string }>();
-  
-  // Default Date State: 14 days ago to today
-  const [startDate, setStartDate] = useState(() => format(subDays(new Date(), 13), 'yyyy-MM-dd'));
-  const [endDate, setEndDate] = useState(() => format(new Date(), 'yyyy-MM-dd'));
-  
+
+  const [startDate, setStartDate] = useState(() =>
+    format(subDays(new Date(), 13), "yyyy-MM-dd"),
+  );
+  const [endDate, setEndDate] = useState(() =>
+    format(new Date(), "yyyy-MM-dd"),
+  );
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchInsights = async (start: string, end: string) => {
+    if (!networkId) return;
     setLoading(true);
     setError(null);
     try {
-      // Validate 7-30 day window locally before hitting API
       const days = differenceInDays(new Date(end), new Date(start)) + 1;
       if (days < 7 || days > 30) {
-        throw new Error(`Invalid Date Range. You selected ${days} days. It must be between 7 and 30 days.`);
+        throw new Error(`Invalid Range (${days} days). Must be 7 to 30 days.`);
       }
 
-      const response = await fetch(`https://eulerity-hackathon.appspot.com/v1/metrics-insights?network=${networkId}&startDate=${start}&endDate=${end}`);
+      const response = await fetch(
+        `https://eulerity-hackathon.appspot.com/v1/metrics-insights?network=${networkId}&startDate=${start}&endDate=${end}`,
+      );
       const jsonData = await response.json();
-      
+
       if (!response.ok) {
-        throw new Error(jsonData.message || 'Failed to fetch insights');
+        throw new Error(jsonData.message || "Failed to fetch insights");
       }
 
       setData(jsonData);
@@ -149,45 +169,42 @@ export default function NetworkDetail() {
     }
   };
 
-  // Fetch on initial load and when network changes
   useEffect(() => {
     fetchInsights(startDate, endDate);
   }, [networkId]);
 
-  const handleApplyDates = () => {
-    fetchInsights(startDate, endDate);
-  };
-
   const handleExportCSV = () => {
-    // Dynamically find the array just like we did for the charts
-    const exportData = data?.metrics || data?.daily || data?.data || (data && Object.values(data).find(Array.isArray));
-    
+    const exportData =
+      data?.metrics ||
+      data?.daily ||
+      data?.data ||
+      (data && Object.values(data).find(Array.isArray));
     if (!exportData || exportData.length === 0) {
       alert("No data available to export yet!");
       return;
     }
-    
-    // PapaParse handles turning the JSON array into a CSV string automatically
     const csvString = Papa.unparse(exportData);
-    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
+    const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `${networkId}-performance-${startDate}-to-${endDate}.csv`;
+    link.download = `${networkId}-export.csv`;
     link.click();
   };
 
-  // Helper to render delta badges (handles inverse logic like CPC where lower is better)
-  const renderDelta = (current: number, previous: number, inverseGood = false) => {
-    if (!previous || previous === 0) return null;
+  const renderDelta = (
+    current?: number,
+    previous?: number,
+    inverseGood = false,
+  ) => {
+    if (!previous || !current || previous === 0) return null;
     const diff = current - previous;
     const percentChange = (diff / previous) * 100;
     const isPositive = diff >= 0;
-    // If inverseGood is true (e.g. Cost per click), a drop (negative) is marked as positive (green)
     const isFavorable = inverseGood ? !isPositive : isPositive;
-    
+
     return (
       <KPIDelta $isPositive={isFavorable}>
-        {isPositive ? '▲' : '▼'} {Math.abs(percentChange).toFixed(1)}% vs Prev Period
+        {isPositive ? "▲" : "▼"} {Math.abs(percentChange).toFixed(1)}%
       </KPIDelta>
     );
   };
@@ -195,75 +212,102 @@ export default function NetworkDetail() {
   return (
     <PageContainer>
       <HeaderRow>
-        <Title>{networkId} Performance</Title>
+        <Title>{networkId} Insights</Title>
         <ControlsContainer>
-          <DateInput 
-            type="date" 
-            value={startDate} 
-            onChange={(e) => setStartDate(e.target.value)} 
+          <DateInput
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
             max={endDate}
           />
-          <span>to</span>
-          <DateInput 
-            type="date" 
-            value={endDate} 
-            onChange={(e) => setEndDate(e.target.value)} 
+          <span style={{ color: "#64748b", fontWeight: "bold" }}>to</span>
+          <DateInput
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
             min={startDate}
           />
-          <Button $primary onClick={handleApplyDates}>Apply</Button>
-          <Button onClick={handleExportCSV} disabled={!data || loading}>Export CSV</Button>
+          <Button $primary onClick={() => fetchInsights(startDate, endDate)}>
+            Apply Dates
+          </Button>
+          <Button onClick={handleExportCSV} disabled={!data || loading}>
+            Export CSV
+          </Button>
         </ControlsContainer>
       </HeaderRow>
 
-      {error && <ErrorBanner><strong>Error:</strong> {error}</ErrorBanner>}
-      {networkId === 'linkedin' && !error && (
-         <p style={{ color: '#666', fontStyle: 'italic', marginBottom: '20px' }}>
-           Note: LinkedIn traffic naturally drops to near-zero volume on weekends.
-         </p>
+      {error && (
+        <ErrorBanner>
+          <strong>Notice:</strong> {error}
+        </ErrorBanner>
+      )}
+      {networkId === "linkedin" && !error && (
+        <p style={{ color: "#64748b", marginBottom: "20px" }}>
+          * Note: B2B LinkedIn traffic naturally drops to near-zero volume on
+          weekends.
+        </p>
       )}
 
-      {loading && <h2>Loading data...</h2>}
+      {loading && (
+        <h2 style={{ textAlign: "center", margin: "40px 0" }}>
+          Analyzing Data...
+        </h2>
+      )}
 
-      {!loading && data && (
+      {!loading && data && data.totals && (
         <>
-          {/* Ensure totals exist before rendering the KPI Strip */}
-          {data.totals && (
-            <KPIStrip>
-              <KPICard>
-                <KPILabel>Total Spend</KPILabel>
-                <KPIValue>${data.totals.spend?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</KPIValue>
-                {renderDelta(data.totals.spend, data.previousTotals?.spend)}
-              </KPICard>
-              
-              <KPICard>
-                <KPILabel>Total Impressions</KPILabel>
-                <KPIValue>{data.totals.impressions?.toLocaleString()}</KPIValue>
-                {renderDelta(data.totals.impressions, data.previousTotals?.impressions)}
-              </KPICard>
+          <KPIStrip>
+            <KPICard>
+              <KPILabel>Total Spend</KPILabel>
+              <KPIValue>
+                $
+                {data.totals?.spend?.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }) || "0.00"}
+              </KPIValue>
+              {renderDelta(data.totals?.spend, data.previousTotals?.spend)}
+            </KPICard>
 
-              <KPICard>
-                <KPILabel>Total Clicks</KPILabel>
-                <KPIValue>{data.totals.clicks?.toLocaleString()}</KPIValue>
-                {renderDelta(data.totals.clicks, data.previousTotals?.clicks)}
-              </KPICard>
+            <KPICard>
+              <KPILabel>Total Impressions</KPILabel>
+              <KPIValue>
+                {data.totals?.impressions?.toLocaleString() || "0"}
+              </KPIValue>
+              {renderDelta(
+                data.totals?.impressions,
+                data.previousTotals?.impressions,
+              )}
+            </KPICard>
 
-              <KPICard>
-                <KPILabel>Avg. CPC</KPILabel>
-                <KPIValue>${data.totals.cpc?.toFixed(2)}</KPIValue>
-                {renderDelta(data.totals.cpc, data.previousTotals?.cpc, true)}
-              </KPICard>
-            </KPIStrip>
-          )}
+            <KPICard>
+              <KPILabel>Total Clicks</KPILabel>
+              <KPIValue>
+                {data.totals?.clicks?.toLocaleString() || "0"}
+              </KPIValue>
+              {renderDelta(data.totals?.clicks, data.previousTotals?.clicks)}
+            </KPICard>
+
+            <KPICard>
+              <KPILabel>Avg. CPC</KPILabel>
+              <KPIValue>${data.totals?.cpc?.toFixed(2) || "0.00"}</KPIValue>
+              {renderDelta(data.totals?.cpc, data.previousTotals?.cpc, true)}
+            </KPICard>
+          </KPIStrip>
 
           <ChartContainer>
-            <h2>Performance Over Time</h2>
+            <h2 style={{ marginTop: 0, color: "#0f172a" }}>
+              Performance Trends
+            </h2>
             {(() => {
-              // Dynamically locate the array in the payload (checks 'metrics', 'daily', or any array)
-              const dailyData = data.metrics || data.daily || data.data || Object.values(data).find(Array.isArray) || [];
-              
-              if (dailyData.length === 0) {
-                return <p style={{ color: '#666' }}>No chart data available for this period.</p>;
-              }
+              const dailyData =
+                data.metrics ||
+                data.daily ||
+                data.data ||
+                (data && Object.values(data).find(Array.isArray)) ||
+                [];
+              if (dailyData.length === 0)
+                return <p>No chart data available for this period.</p>;
 
               return (
                 <Chart
@@ -271,19 +315,22 @@ export default function NetworkDetail() {
                   width="100%"
                   height="400px"
                   data={[
-                    ['Date', 'Impressions', 'Clicks'],
+                    ["Date", "Impressions", "Clicks"],
                     ...dailyData.map((day: any) => [
-                      format(new Date(day.date), 'MMM dd'), 
-                      day.impressions || 0, 
-                      day.clicks || 0
-                    ])
+                      day.date
+                        ? format(new Date(day.date), "MMM dd")
+                        : "Unknown",
+                      day.impressions || 0,
+                      day.clicks || 0,
+                    ]),
                   ]}
                   options={{
-                    curveType: 'function',
-                    legend: { position: 'bottom' },
-                    colors: ['#aa3bff', '#16a34a'],
-                    chartArea: { width: '90%', height: '70%' },
-                    vAxis: { format: 'short' }
+                    curveType: "function",
+                    legend: { position: "bottom" },
+                    colors: ["#aa3bff", "#16a34a"],
+                    chartArea: { width: "90%", height: "70%" },
+                    vAxis: { format: "short", textStyle: { color: "#64748b" } },
+                    hAxis: { textStyle: { color: "#64748b" } },
                   }}
                 />
               );
