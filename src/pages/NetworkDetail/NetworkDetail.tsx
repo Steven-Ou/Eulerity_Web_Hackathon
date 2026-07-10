@@ -303,16 +303,27 @@ export default function NetworkDetail() {
           </KPIStrip>
 
           <ChartContainer>
-            <h2 style={{ marginTop: 0, color: "#0f172a" }}>
-              Performance Trends
-            </h2>
+            <h2>Performance Over Time</h2>
             {(() => {
-              const dailyData =
-                data.metrics ||
-                data.daily ||
-                data.data ||
-                (data && Object.values(data).find(Array.isArray)) ||
-                [];
+              // 1. Identify the daily data array.
+              // If it's meta, we combine facebook and instagram, otherwise take the standard array.
+              let dailyData: any[] = [];
+
+              if (networkId === "meta" && data.dailyData) {
+                // Combine both arrays so the chart shows the aggregate reach
+                dailyData = [
+                  ...(data.dailyData.facebook || []),
+                  ...(data.dailyData.instagram || []),
+                ];
+              } else {
+                dailyData =
+                  data.metrics ||
+                  data.daily ||
+                  data.data ||
+                  Object.values(data).find(Array.isArray) ||
+                  [];
+              }
+
               if (dailyData.length === 0)
                 return <p>No chart data available for this period.</p>;
 
