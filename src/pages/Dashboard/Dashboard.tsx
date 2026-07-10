@@ -34,8 +34,10 @@ const Grid = styled.div`
 `;
 
 const Card = styled.div`
-  flex: 1 1 300px;
-  max-width: 380px; /* Prevents cards from getting comically huge */
+  flex: 1 1 calc(33.333% - 20px);
+  min-width: 280px; 
+  max-width: 400px; 
+  
   background: #ffffff;
   border-radius: 12px;
   padding: 24px;
