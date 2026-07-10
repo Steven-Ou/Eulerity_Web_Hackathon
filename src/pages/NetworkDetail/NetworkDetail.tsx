@@ -248,12 +248,19 @@ export default function NetworkDetail() {
         </p>
       )}
 
-      {loading && (
-        <h2 style={{ textAlign: "center", margin: "40px 0" }}>
-          Analyzing Data...
-        </h2>
+      {!loading && data && (
+        <pre
+          style={{
+            background: "#eee",
+            padding: "10px",
+            fontSize: "12px",
+            overflow: "auto",
+            maxHeight: "300px",
+          }}
+        >
+          {JSON.stringify(data, null, 2)}
+        </pre>
       )}
-
       {!loading && data && data.totals && (
         <>
           <KPIStrip>
