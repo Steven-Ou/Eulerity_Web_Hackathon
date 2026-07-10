@@ -209,6 +209,21 @@ export default function NetworkDetail() {
     );
   };
 
+  const getTotals = () => {
+    if (networkId === "meta" && data.totals) {
+      return {
+        spend: data.totals.facebook.spend + data.totals.instagram.spend,
+        impressions:
+          data.totals.facebook.impressions + data.totals.instagram.impressions,
+        clicks: data.totals.facebook.clicks + data.totals.instagram.clicks,
+        cpc: (data.totals.facebook.cpc + data.totals.instagram.cpc) / 2,
+      };
+    }
+    return data.totals;
+  };
+
+  const displayTotals = getTotals();
+
   return (
     <PageContainer>
       <HeaderRow>
