@@ -214,12 +214,21 @@ export default function NetworkDetail() {
     // If data is null or undefined, return null immediately
     if (!data) return null;
 
-    if (networkId === 'meta' && data.totals) {
+    if (networkId === "meta" && data.totals) {
       return {
-        spend: (data.totals.facebook?.spend || 0) + (data.totals.instagram?.spend || 0),
-        impressions: (data.totals.facebook?.impressions || 0) + (data.totals.instagram?.impressions || 0),
-        clicks: (data.totals.facebook?.clicks || 0) + (data.totals.instagram?.clicks || 0),
-        cpc: ((data.totals.facebook?.cpc || 0) + (data.totals.instagram?.cpc || 0)) / 2
+        spend:
+          (data.totals.facebook?.spend || 0) +
+          (data.totals.instagram?.spend || 0),
+        impressions:
+          (data.totals.facebook?.impressions || 0) +
+          (data.totals.instagram?.impressions || 0),
+        clicks:
+          (data.totals.facebook?.clicks || 0) +
+          (data.totals.instagram?.clicks || 0),
+        cpc:
+          ((data.totals.facebook?.cpc || 0) +
+            (data.totals.instagram?.cpc || 0)) /
+          2,
       };
     }
     return data.totals;
@@ -259,92 +268,62 @@ export default function NetworkDetail() {
           <strong>Notice:</strong> {error}
         </ErrorBanner>
       )}
-      {networkId === "linkedin" && !error && (
-        <p style={{ color: "#64748b", marginBottom: "20px" }}>
-          * Note: B2B LinkedIn traffic naturally drops to near-zero volume on
-          weekends.
-        </p>
-      )}
 
-      {!loading && data && (
-        <pre
-          style={{
-            background: "#eee",
-            padding: "10px",
-            fontSize: "12px",
-            overflow: "auto",
-            maxHeight: "300px",
-          }}
-        >
-          {JSON.stringify(data, null, 2)}
-        </pre>
-      )}
-      {!loading && data && data.totals && (
+      {loading ? (
+        <h2 style={{ textAlign: "center", margin: "40px 0" }}>
+          Analyzing Data...
+        </h2>
+      ) : displayTotals ? (
         <>
           <KPIStrip>
             <KPICard>
               <KPILabel>Total Spend</KPILabel>
               <KPIValue>
                 $
-                {data.totals?.spend?.toLocaleString(undefined, {
+                {displayTotals.spend?.toLocaleString(undefined, {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 }) || "0.00"}
               </KPIValue>
-              {renderDelta(data.totals?.spend, data.previousTotals?.spend)}
+              {renderDelta(displayTotals.spend, data?.previousTotals?.spend)}
             </KPICard>
-
             <KPICard>
               <KPILabel>Total Impressions</KPILabel>
               <KPIValue>
-                {data.totals?.impressions?.toLocaleString() || "0"}
+                {displayTotals.impressions?.toLocaleString() || "0"}
               </KPIValue>
               {renderDelta(
-                data.totals?.impressions,
-                data.previousTotals?.impressions,
+                displayTotals.impressions,
+                data?.previousTotals?.impressions,
               )}
             </KPICard>
-
             <KPICard>
               <KPILabel>Total Clicks</KPILabel>
               <KPIValue>
-                {data.totals?.clicks?.toLocaleString() || "0"}
+                {displayTotals.clicks?.toLocaleString() || "0"}
               </KPIValue>
-              {renderDelta(data.totals?.clicks, data.previousTotals?.clicks)}
+              {renderDelta(displayTotals.clicks, data?.previousTotals?.clicks)}
             </KPICard>
-
             <KPICard>
               <KPILabel>Avg. CPC</KPILabel>
-              <KPIValue>${data.totals?.cpc?.toFixed(2) || "0.00"}</KPIValue>
-              {renderDelta(data.totals?.cpc, data.previousTotals?.cpc, true)}
+              <KPIValue>${displayTotals.cpc?.toFixed(2) || "0.00"}</KPIValue>
+              {renderDelta(displayTotals.cpc, data?.previousTotals?.cpc, true)}
             </KPICard>
           </KPIStrip>
 
           <ChartContainer>
-            <h2>Performance Over Time</h2>
+            <h2 style={{ marginTop: 0, color: "#0f172a" }}>
+              Performance Trends
+            </h2>
             {(() => {
-              // 1. Identify the daily data array.
-              // If it's meta, we combine facebook and instagram, otherwise take the standard array.
-              let dailyData: any[] = [];
-
-              if (networkId === "meta" && data.dailyData) {
-                // Combine both arrays so the chart shows the aggregate reach
-                dailyData = [
-                  ...(data.dailyData.facebook || []),
-                  ...(data.dailyData.instagram || []),
-                ];
-              } else {
-                dailyData =
-                  data.metrics ||
-                  data.daily ||
-                  data.data ||
-                  Object.values(data).find(Array.isArray) ||
-                  [];
-              }
-
+              const dailyData =
+                data?.metrics ||
+                data?.daily ||
+                data?.data ||
+                (data && Object.values(data).find(Array.isArray)) ||
+                [];
               if (dailyData.length === 0)
                 return <p>No chart data available for this period.</p>;
-
               return (
                 <Chart
                   chartType="LineChart"
@@ -365,14 +344,14 @@ export default function NetworkDetail() {
                     legend: { position: "bottom" },
                     colors: ["#aa3bff", "#16a34a"],
                     chartArea: { width: "90%", height: "70%" },
-                    vAxis: { format: "short", textStyle: { color: "#64748b" } },
-                    hAxis: { textStyle: { color: "#64748b" } },
                   }}
                 />
               );
             })()}
           </ChartContainer>
         </>
+      ) : (
+        <p>No data found for this selection.</p>
       )}
     </PageContainer>
   );
