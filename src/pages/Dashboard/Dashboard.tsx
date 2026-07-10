@@ -108,11 +108,13 @@ export default function Dashboard() {
         return res.json();
       })
       .then((jsonData) => {
-        // If the backend returns an array, great. 
-        // If it returns an object with network keys, we convert it to an array for easy mapping.
-        const formattedData = Array.isArray(jsonData) 
-          ? jsonData 
-          : Object.keys(jsonData).map(key => ({ network: key, ...jsonData[key] }));
+
+        const allowedNetworks = ['facebook', 'instagram', 'google', 'linkedin'];
+        
+        const formattedData = Object.keys(jsonData)
+          // Filter out the "period" and "previousPeriod" keys
+          .filter(key => allowedNetworks.includes(key.toLowerCase()))
+          .map(key => ({ network: key, ...jsonData[key] }));
           
         setData(formattedData);
         setLoading(false);
