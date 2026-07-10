@@ -173,21 +173,28 @@ export default function NetworkDetail() {
     fetchInsights(startDate, endDate);
   }, [networkId]);
 
+  const getDailyData = () => {
+    if (!data) return [];
+    if (networkId === 'meta') {
+      // Merge FB and IG arrays if it's meta
+      return [...(data.dailyData?.facebook || []), ...(data.dailyData?.instagram || [])];
+    }
+    // For others, return the found array
+    return data.metrics || data.daily || data.data || [];
+  };
+
+  const dailyData = getDailyData();
+
   const handleExportCSV = () => {
-    const exportData =
-      data?.metrics ||
-      data?.daily ||
-      data?.data ||
-      (data && Object.values(data).find(Array.isArray));
-    if (!exportData || exportData.length === 0) {
+    if (!dailyData || dailyData.length === 0) {
       alert("No data available to export yet!");
       return;
     }
-    const csvString = Papa.unparse(exportData);
-    const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
+    const csvString = Papa.unparse(dailyData);
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `${networkId}-export.csv`;
+    link.download = `${networkId}-performance.csv`;
     link.click();
   };
 
