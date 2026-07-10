@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { SummaryMetrics } from '../../types';
+import type { SummaryMetrics } from '../../types';
 
 export default function Dashboard() {
   const [data, setData] = useState<SummaryMetrics[] | null>(null);
