@@ -176,18 +176,19 @@ export default function NetworkDetail() {
   const getDailyData = () => {
     if (!data) return [];
 
-    if (networkId === "meta") {
-      const fb = data.dailyData?.facebook || [];
-      const ig = data.dailyData?.instagram || [];
-
-      // Combine arrays by date
-      return fb.map((fbDay: any, index: number) => ({
-        date: fbDay.date,
-        impressions: fbDay.impressions + (ig[index]?.impressions || 0),
-        clicks: fbDay.clicks + (ig[index]?.clicks || 0),
+    // For Meta, merge the arrays
+    if (networkId === "meta" && data.dailyData) {
+      const fb = data.dailyData.facebook || [];
+      const ig = data.dailyData.instagram || [];
+      // Merge by date index (assuming arrays are same length/dates)
+      return fb.map((day: any, i: number) => ({
+        date: day.date,
+        impressions: day.impressions + (ig[i]?.impressions || 0),
+        clicks: day.clicks + (ig[i]?.clicks || 0),
       }));
     }
 
+    // Standard extraction for others
     return data.metrics || data.daily || data.data || [];
   };
 
