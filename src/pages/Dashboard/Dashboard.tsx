@@ -12,7 +12,7 @@ const DashboardContainer = styled.div`
 
 const Header = styled.div`
   margin-bottom: 30px;
-  text-align: left;
+  text-align: center;
 `;
 
 const Title = styled.h1`
@@ -27,12 +27,15 @@ const Subtitle = styled.p`
 `;
 
 const Grid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 20px;
 `;
 
 const Card = styled.div`
+  flex: 1 1 300px;
+  max-width: 380px; /* Prevents cards from getting comically huge */
   background: #ffffff;
   border-radius: 12px;
   padding: 24px;
