@@ -135,36 +135,30 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetch("https://eulerity-hackathon.appspot.com/v1/metrics-summary")
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch summary metrics");
-        return res.json();
-      })
+      .then((res) => res.json())
       .then((jsonData) => {
-        // 1. Define the whitelist for the standard networks
-        const allowedNetworks = ["google", "linkedin"];
+        // 1. Create a base list of known platforms
+        const platforms = ["google", "linkedin", "facebook", "instagram"];
 
-        // 2. Map the standard networks
-        const formattedData = Object.keys(jsonData)
-          .filter((key) => allowedNetworks.includes(key.toLowerCase()))
-          .map((key) => ({ network: key, ...jsonData[key] }));
+        // 2. Aggregate data
+        const fb = jsonData["facebook"] || {};
+        const ig = jsonData["instagram"] || {};
 
-        // 3. Manually construct and push the Meta card if data exists
-        if (jsonData["facebook"] || jsonData["instagram"]) {
-          formattedData.push({
+        const formattedData = [
+          // Add Google and LinkedIn
+          ...["google", "linkedin"].map((key) => ({
+            network: key,
+            ...jsonData[key],
+          })),
+          // Add merged Meta card
+          {
             network: "meta",
-            spend:
-              (jsonData["facebook"]?.spend || 0) +
-              (jsonData["instagram"]?.spend || 0),
-            impressions:
-              (jsonData["facebook"]?.impressions || 0) +
-              (jsonData["instagram"]?.impressions || 0),
-            clicks:
-              (jsonData["facebook"]?.clicks || 0) +
-              (jsonData["instagram"]?.clicks || 0),
-          });
-        }
+            spend: (fb.spend || 0) + (ig.spend || 0),
+            impressions: (fb.impressions || 0) + (ig.impressions || 0),
+            clicks: (fb.clicks || 0) + (ig.clicks || 0),
+          },
+        ];
 
-        // 4. Finally, set the state with the fully prepared array
         setData(formattedData);
         setLoading(false);
       });
