@@ -329,42 +329,29 @@ export default function NetworkDetail() {
             <h2 style={{ marginTop: 0, color: "#0f172a" }}>
               Performance Trends
             </h2>
-            {(() => {
-              const dailyData =
-                data?.metrics ||
-                data?.daily ||
-                data?.data ||
-                (data && Object.values(data).find(Array.isArray)) ||
-                [];
-              if (dailyData.length === 0)
-                return <p>No chart data available for this period.</p>;
-              return (
-                <Chart
-                  chartType="LineChart"
-                  width="100%"
-                  height="400px"
-                  data={[
-                    ["Date", "Impressions"],
-                    ["Test", 100],
-                    ["Test2", 200],
-                    // ["Date", "Impressions", "Clicks"],
-                    // ...dailyData.map((day: any) => [
-                    //   day.date
-                    //     ? format(new Date(day.date), "MMM dd")
-                    //     : "Unknown",
-                    //   day.impressions || 0,
-                    //   day.clicks || 0,
-                    // ]),
-                  ]}
-                  options={{
-                    curveType: "function",
-                    legend: { position: "bottom" },
-                    colors: ["#aa3bff", "#16a34a"],
-                    chartArea: { width: "90%", height: "70%" },
-                  }}
-                />
-              );
-            })()}
+            {dailyData.length > 0 ? (
+              <Chart
+                chartType="LineChart"
+                width="100%"
+                height="400px"
+                data={[
+                  ["Date", "Impressions", "Clicks"],
+                  ...dailyData.map((day: any) => [
+                    day.date ? format(new Date(day.date), "MMM dd") : "Unknown",
+                    day.impressions || 0,
+                    day.clicks || 0,
+                  ]),
+                ]}
+                options={{
+                  curveType: "function",
+                  legend: { position: "bottom" },
+                  colors: ["#aa3bff", "#16a34a"],
+                  chartArea: { width: "80%", height: "70%" },
+                }}
+              />
+            ) : (
+              <p>No data to display. Try a different date range.</p>
+            )}
           </ChartContainer>
         </>
       ) : (
