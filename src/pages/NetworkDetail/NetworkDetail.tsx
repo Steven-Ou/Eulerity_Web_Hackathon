@@ -176,20 +176,16 @@ export default function NetworkDetail() {
   const getDailyData = () => {
     if (!data) return [];
 
-    // For Meta, merge the arrays
+    // If it's Meta, specifically flatten the structure from the API
     if (networkId === "meta" && data.dailyData) {
       const fb = data.dailyData.facebook || [];
       const ig = data.dailyData.instagram || [];
-      // Merge by date index (assuming arrays are same length/dates)
-      return fb.map((day: any, i: number) => ({
-        date: day.date,
-        impressions: day.impressions + (ig[i]?.impressions || 0),
-        clicks: day.clicks + (ig[i]?.clicks || 0),
-      }));
+      // Combine arrays safely
+      return [...fb, ...ig];
     }
 
-    // Standard extraction for others
-    return data.metrics || data.daily || data.data || [];
+    // Universal fallback for any other structure
+    return Object.values(data).find(Array.isArray) || [];
   };
 
   const dailyData = getDailyData();
@@ -296,10 +292,12 @@ export default function NetworkDetail() {
               <KPILabel>Total Spend</KPILabel>
               <KPIValue>
                 $
-                {displayTotals.spend?.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                }) || "0.00"}
+                {(
+                  (networkId === "meta"
+                    ? (data?.totals?.facebook?.spend || 0) +
+                      (data?.totals?.instagram?.spend || 0)
+                    : data?.totals?.spend) || 0
+                ).toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </KPIValue>
               {renderDelta(displayTotals.spend, data?.previousTotals?.spend)}
             </KPICard>
