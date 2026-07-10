@@ -175,11 +175,19 @@ export default function NetworkDetail() {
 
   const getDailyData = () => {
     if (!data) return [];
-    if (networkId === 'meta') {
-      // Merge FB and IG arrays if it's meta
-      return [...(data.dailyData?.facebook || []), ...(data.dailyData?.instagram || [])];
+
+    if (networkId === "meta") {
+      const fb = data.dailyData?.facebook || [];
+      const ig = data.dailyData?.instagram || [];
+
+      // Combine arrays by date
+      return fb.map((fbDay: any, index: number) => ({
+        date: fbDay.date,
+        impressions: fbDay.impressions + (ig[index]?.impressions || 0),
+        clicks: fbDay.clicks + (ig[index]?.clicks || 0),
+      }));
     }
-    // For others, return the found array
+
     return data.metrics || data.daily || data.data || [];
   };
 
@@ -191,8 +199,8 @@ export default function NetworkDetail() {
       return;
     }
     const csvString = Papa.unparse(dailyData);
-    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
+    const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = `${networkId}-performance.csv`;
     link.click();

@@ -140,16 +140,32 @@ export default function Dashboard() {
         return res.json();
       })
       .then((jsonData) => {
-        const allowedNetworks = ["facebook", "instagram", "google", "linkedin"];
+        // 1. Define the whitelist for the standard networks
+        const allowedNetworks = ["google", "linkedin"];
+
+        // 2. Map the standard networks
         const formattedData = Object.keys(jsonData)
           .filter((key) => allowedNetworks.includes(key.toLowerCase()))
           .map((key) => ({ network: key, ...jsonData[key] }));
 
+        // 3. Manually construct and push the Meta card if data exists
+        if (jsonData["facebook"] || jsonData["instagram"]) {
+          formattedData.push({
+            network: "meta",
+            spend:
+              (jsonData["facebook"]?.spend || 0) +
+              (jsonData["instagram"]?.spend || 0),
+            impressions:
+              (jsonData["facebook"]?.impressions || 0) +
+              (jsonData["instagram"]?.impressions || 0),
+            clicks:
+              (jsonData["facebook"]?.clicks || 0) +
+              (jsonData["instagram"]?.clicks || 0),
+          });
+        }
+
+        // 4. Finally, set the state with the fully prepared array
         setData(formattedData);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message);
         setLoading(false);
       });
   }, []);
