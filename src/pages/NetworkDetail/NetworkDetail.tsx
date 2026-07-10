@@ -217,57 +217,70 @@ export default function NetworkDetail() {
 
       {loading && <h2>Loading data...</h2>}
 
-      {!loading && data && data.totals && (
+      {!loading && data && (
         <>
-          <KPIStrip>
-            <KPICard>
-              <KPILabel>Total Spend</KPILabel>
-              <KPIValue>${data.totals.spend?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</KPIValue>
-              {renderDelta(data.totals.spend, data.previousTotals?.spend)}
-            </KPICard>
-            
-            <KPICard>
-              <KPILabel>Total Impressions</KPILabel>
-              <KPIValue>{data.totals.impressions?.toLocaleString()}</KPIValue>
-              {renderDelta(data.totals.impressions, data.previousTotals?.impressions)}
-            </KPICard>
+          {/* Ensure totals exist before rendering the KPI Strip */}
+          {data.totals && (
+            <KPIStrip>
+              <KPICard>
+                <KPILabel>Total Spend</KPILabel>
+                <KPIValue>${data.totals.spend?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</KPIValue>
+                {renderDelta(data.totals.spend, data.previousTotals?.spend)}
+              </KPICard>
+              
+              <KPICard>
+                <KPILabel>Total Impressions</KPILabel>
+                <KPIValue>{data.totals.impressions?.toLocaleString()}</KPIValue>
+                {renderDelta(data.totals.impressions, data.previousTotals?.impressions)}
+              </KPICard>
 
-            <KPICard>
-              <KPILabel>Total Clicks</KPILabel>
-              <KPIValue>{data.totals.clicks?.toLocaleString()}</KPIValue>
-              {renderDelta(data.totals.clicks, data.previousTotals?.clicks)}
-            </KPICard>
+              <KPICard>
+                <KPILabel>Total Clicks</KPILabel>
+                <KPIValue>{data.totals.clicks?.toLocaleString()}</KPIValue>
+                {renderDelta(data.totals.clicks, data.previousTotals?.clicks)}
+              </KPICard>
 
-            <KPICard>
-              <KPILabel>Avg. CPC</KPILabel>
-              <KPIValue>${data.totals.cpc?.toFixed(2)}</KPIValue>
-              {/* Note: Lower CPC is better, so inverseGood = true */}
-              {renderDelta(data.totals.cpc, data.previousTotals?.cpc, true)}
-            </KPICard>
-          </KPIStrip>
+              <KPICard>
+                <KPILabel>Avg. CPC</KPILabel>
+                <KPIValue>${data.totals.cpc?.toFixed(2)}</KPIValue>
+                {renderDelta(data.totals.cpc, data.previousTotals?.cpc, true)}
+              </KPICard>
+            </KPIStrip>
+          )}
 
           <ChartContainer>
             <h2>Performance Over Time</h2>
-            <Chart
-              chartType="LineChart"
-              width="100%"
-              height="400px"
-              data={[
-                ['Date', 'Impressions', 'Clicks'],
-                ...data.metrics.map((day: any) => [
-                  format(new Date(day.date), 'MMM dd'), 
-                  day.impressions, 
-                  day.clicks
-                ])
-              ]}
-              options={{
-                curveType: 'function',
-                legend: { position: 'bottom' },
-                colors: ['#aa3bff', '#16a34a'],
-                chartArea: { width: '90%', height: '70%' },
-                vAxis: { format: 'short' }
-              }}
-            />
+            {(() => {
+              // Dynamically locate the array in the payload (checks 'metrics', 'daily', or any array)
+              const dailyData = data.metrics || data.daily || data.data || Object.values(data).find(Array.isArray) || [];
+              
+              if (dailyData.length === 0) {
+                return <p style={{ color: '#666' }}>No chart data available for this period.</p>;
+              }
+
+              return (
+                <Chart
+                  chartType="LineChart"
+                  width="100%"
+                  height="400px"
+                  data={[
+                    ['Date', 'Impressions', 'Clicks'],
+                    ...dailyData.map((day: any) => [
+                      format(new Date(day.date), 'MMM dd'), 
+                      day.impressions || 0, 
+                      day.clicks || 0
+                    ])
+                  ]}
+                  options={{
+                    curveType: 'function',
+                    legend: { position: 'bottom' },
+                    colors: ['#aa3bff', '#16a34a'],
+                    chartArea: { width: '90%', height: '70%' },
+                    vAxis: { format: 'short' }
+                  }}
+                />
+              );
+            })()}
           </ChartContainer>
         </>
       )}
