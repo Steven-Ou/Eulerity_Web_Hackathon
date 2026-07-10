@@ -159,13 +159,20 @@ export default function NetworkDetail() {
   };
 
   const handleExportCSV = () => {
-    if (!data?.metrics) return;
-    // PapaParse handles turning the JSON array of metrics into a CSV string automatically
-    const csvString = Papa.unparse(data.metrics);
+    // Dynamically find the array just like we did for the charts
+    const exportData = data?.metrics || data?.daily || data?.data || (data && Object.values(data).find(Array.isArray));
+    
+    if (!exportData || exportData.length === 0) {
+      alert("No data available to export yet!");
+      return;
+    }
+    
+    // PapaParse handles turning the JSON array into a CSV string automatically
+    const csvString = Papa.unparse(exportData);
     const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `${networkId}-export-${startDate}-to-${endDate}.csv`;
+    link.download = `${networkId}-performance-${startDate}-to-${endDate}.csv`;
     link.click();
   };
 
