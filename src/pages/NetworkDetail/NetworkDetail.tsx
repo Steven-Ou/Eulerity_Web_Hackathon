@@ -209,14 +209,17 @@ export default function NetworkDetail() {
     );
   };
 
+  // --- DEFENSIVE DATA EXTRACTION ---
   const getTotals = () => {
-    if (networkId === "meta" && data.totals) {
+    // If data is null or undefined, return null immediately
+    if (!data) return null;
+
+    if (networkId === 'meta' && data.totals) {
       return {
-        spend: data.totals.facebook.spend + data.totals.instagram.spend,
-        impressions:
-          data.totals.facebook.impressions + data.totals.instagram.impressions,
-        clicks: data.totals.facebook.clicks + data.totals.instagram.clicks,
-        cpc: (data.totals.facebook.cpc + data.totals.instagram.cpc) / 2,
+        spend: (data.totals.facebook?.spend || 0) + (data.totals.instagram?.spend || 0),
+        impressions: (data.totals.facebook?.impressions || 0) + (data.totals.instagram?.impressions || 0),
+        clicks: (data.totals.facebook?.clicks || 0) + (data.totals.instagram?.clicks || 0),
+        cpc: ((data.totals.facebook?.cpc || 0) + (data.totals.instagram?.cpc || 0)) / 2
       };
     }
     return data.totals;
