@@ -223,27 +223,21 @@ export default function NetworkDetail() {
 
   // --- DEFENSIVE DATA EXTRACTION ---
   const getTotals = () => {
-    // If data is null or undefined, return null immediately
     if (!data) return null;
 
-    if (networkId === "meta" && data.totals) {
+    // If Meta, aggregate specifically from the totals object
+    if (networkId === 'meta' && data.totals) {
       return {
-        spend:
-          (data.totals.facebook?.spend || 0) +
-          (data.totals.instagram?.spend || 0),
-        impressions:
-          (data.totals.facebook?.impressions || 0) +
-          (data.totals.instagram?.impressions || 0),
-        clicks:
-          (data.totals.facebook?.clicks || 0) +
-          (data.totals.instagram?.clicks || 0),
-        cpc:
-          ((data.totals.facebook?.cpc || 0) +
-            (data.totals.instagram?.cpc || 0)) /
-          2,
+        // Use optional chaining (?.) and fallback to 0 to prevent crashes
+        spend: (data.totals.facebook?.spend || 0) + (data.totals.instagram?.spend || 0),
+        impressions: (data.totals.facebook?.impressions || 0) + (data.totals.instagram?.impressions || 0),
+        clicks: (data.totals.facebook?.clicks || 0) + (data.totals.instagram?.clicks || 0),
+        cpc: (((data.totals.facebook?.cpc || 0) + (data.totals.instagram?.cpc || 0)) / 2) || 0
       };
     }
-    return data.totals;
+    
+    // For other platforms, return the direct totals
+    return data.totals || { spend: 0, impressions: 0, clicks: 0, cpc: 0 };
   };
 
   const displayTotals = getTotals();
