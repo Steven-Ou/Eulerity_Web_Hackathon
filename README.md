@@ -1,32 +1,27 @@
-# React + TypeScript + Vite
+# Eulerity Web Hackathon - Performance Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A React, TypeScript, and Vite frontend application built to visualize multi-channel marketing performance metrics.
 
-Currently, two official plugins are available:
+## Tech Stack
+* **Framework:** React + TypeScript (via Vite)
+* **Routing:** `react-router-dom`
+* **Styling:** `styled-components`
+* **Charts:** `react-google-charts`
+* **Exporting:** `papaparse` (CSV formatting)
+* **Dates:** `date-fns`
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Setup and Run Instructions
 
-## React Compiler
+1. **Install Dependencies**
+Ensure you have Node.js installed, then run:
+\`\`\`bash
+npm install
+\`\`\`
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+2. **Start the Development Server**
+\`\`\`bash
+npm run dev
+\`\`\`
 
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
-```
-
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+3. **View the App**
+Open your browser and navigate to the local host link provided in your terminal (usually `http://localhost:5173`).
