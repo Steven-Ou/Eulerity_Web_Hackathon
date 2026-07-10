@@ -1,35 +1,67 @@
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
+import styled from 'styled-components';
 import Dashboard from './pages/Dashboard/Dashboard';
 import NetworkDetail from './pages/NetworkDetail/NetworkDetail';
 
-// Temporary inline styles just to see the nav structure
-const navStyle = {
-  display: 'flex',
-  gap: '20px',
-  padding: '20px',
-  background: '#f4f4f4',
-  borderBottom: '1px solid #ddd'
-};
+// --- STYLED COMPONENTS FOR NAVIGATION ---
+const NavContainer = styled.nav`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  padding: 20px;
+  background: #ffffff;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  margin-bottom: 30px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+`;
 
-function App() {
+const NavLink = styled(Link)<{ $isActive?: boolean }>`
+  text-decoration: none;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  
+  /* Dynamic styling based on whether we are on this page */
+  color: ${props => props.$isActive ? '#ffffff' : '#555555'};
+  background: ${props => props.$isActive ? '#aa3bff' : 'transparent'};
+
+  &:hover {
+    background: ${props => props.$isActive ? '#aa3bff' : '#f0f0f0'};
+    color: ${props => props.$isActive ? '#ffffff' : '#111111'};
+  }
+`;
+
+// Helper component to apply active styles based on the current URL
+function NavigationMenu() {
+  const location = useLocation();
+  const currentPath = location.pathname;
+
+  return (
+    <NavContainer>
+      <NavLink to="/" $isActive={currentPath === '/'}>Dashboard</NavLink>
+      <NavLink to="/meta" $isActive={currentPath === '/meta'}>Meta</NavLink>
+      <NavLink to="/google" $isActive={currentPath === '/google'}>Google</NavLink>
+      <NavLink to="/linkedin" $isActive={currentPath === '/linkedin'}>LinkedIn</NavLink>
+    </NavContainer>
+  );
+}
+
+// --- MAIN APP ---
+export default function App() {
   return (
     <BrowserRouter>
-      <nav style={navStyle}>
-        <Link to="/">Dashboard</Link>
-        <Link to="/meta">Meta</Link>
-        <Link to="/google">Google</Link>
-        <Link to="/linkedin">LinkedIn</Link>
-      </nav>
-
-      <main style={{ padding: '20px' }}>
+      <NavigationMenu />
+      
+      <main style={{ padding: '0 20px', paddingBottom: '50px' }}>
         <Routes>
           <Route path="/" element={<Dashboard />} />
-          {/* :networkId will dynamically capture 'meta', 'google', or 'linkedin' */}
           <Route path="/:networkId" element={<NetworkDetail />} />
         </Routes>
       </main>
     </BrowserRouter>
   );
 }
-
-export default App;
